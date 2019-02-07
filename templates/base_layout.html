@@ -1,0 +1,34 @@
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+    {% block style %}
+    
+    {% endblock %}
+    <title>Nessus Map</title>
+</head>
+<body>
+    
+    <header>
+        <nav class="nav-wrapper deep-purple">
+            <div class="container">
+                <a href="/" class="brand-logo">Nessus Map</a>
+                <ul class="right">
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    {% block content%}
+    
+    {% endblock %}
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+    {% block scripts %}
+
+    {% endblock %}
+</body>
+</html>

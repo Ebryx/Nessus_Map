@@ -1,0 +1,43 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <h5>Parsed Services</h5>
+        </div>
+        <div class="row">
+            <ul class="collapsible popout">
+                {% for service, hosts in services.items %}
+                    <li>
+                        <div class="collapsible-header">
+                            <div class="col l11">{{ service|upper}}</div>
+                            <div class="col l1"><span class="new badge red" data-badge-caption="IP">{{ hosts|length }}</span></div>
+                        </div>
+                        <div class="collapsible-body">
+                            {% for host in hosts %}
+                                <div class="chip">
+                                    {{ host }}
+                                </div>
+                            {% endfor %}
+                            {% comment %} <ul class="collection">
+                                {% for host in hosts %}
+                                <li class="collection-item">{{ host }}</li>
+                                {% endfor %}
+                            </ul> {% endcomment %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        });
+    </script>
+{% endblock %}

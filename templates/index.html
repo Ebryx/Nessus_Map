@@ -1,0 +1,60 @@
+{% extends 'base_layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <form method="POST" action="{% url 'nessus:upload' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="file-field input-field">
+                    <div class="btn">
+                        <span>File</span>
+                        <input type="file" name="xmlFile">
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input class="file-path validate" type="text" placeholder="Select File">
+                    </div>
+                </div>
+                <input type="submit" class="btn" value="Upload File">
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="col l6 s6">
+                <form action="{% url 'nessus:executive-report' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" name="executive-report" value="Execute Report" class="btn btn-small red">
+                </form>
+            </div>
+
+            <div class="col l6 s6">
+                <form action="{% url 'nessus:nessusparse' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" name="ParseXML" value="Parse Vulnerabilities" class="btn btn-small red">
+                </form>
+            </div>
+
+            <div class="col l6 s6">
+                <form action="{% url 'nessus:services' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" name="services" value="Parse Services" class="btn btn-small red">
+                </form>
+            </div>
+
+            <div class="col l6 s6">
+                <form action="{% url 'nessus:parseos' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="submit" name="parse-OS" value="Parse Un Supported OS" class="btn btn-small red">
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <ul class="collection with-header">
+                <li class="collection-header"><h5>XML Files</h5></li>
+                {% for file in files %}
+                    <li class="collection-item"><div>{{ file }}<a href="#!" class="secondary-content"><i class="material-icons">delete</i></a></div></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

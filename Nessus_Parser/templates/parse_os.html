@@ -1,0 +1,27 @@
+{% extends 'base_layout.html' %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <h5>Unsupported OS</h5>
+        </div>
+        <table class="highlight">
+            <thead>
+                <tr>
+                    <th>IP</th>
+                    <th>OS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for ip, os in osDict.items %}
+                    <tr>
+                        <td> {{ ip }} </td>
+                        <td> {{ os }} </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

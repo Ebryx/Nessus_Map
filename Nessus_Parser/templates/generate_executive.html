@@ -1,0 +1,190 @@
+{% extends 'base_layout.html' %}
+{% load app_filters %}
+{% block content %}
+    <div class="container">
+        <div class="row"></div>
+        <div class="row">
+            <ul class="tabs">
+                <li class="tab col l6 s6"><a href="#vulnCount" class="teal white-text active">Vulnerability Based</a></li>
+                <li class="tab col l6 s6"><a href="#hostCount" class="teal lighten-1 white-text">Host Based</a></li>
+            </ul>
+        </div>
+        <div class="row">
+            <div class="col l12" id="vulnCount">
+                <div class="row">
+                    <ul class="tabs">
+                        <li class="tab col l3"><a href="#Critical" class="red accent-4 white-text active">Critical</a></li>
+                        <li class="tab col l3"><a href="#High" class="red white-text">High</a></li>
+                        <li class="tab col l2"><a href="#Medium" class="yellow black-text">Medium</a></li>
+                        <li class="tab col l2"><a href="#Low" class="green white-text">Low</a></li>
+                        <li class="tab col l2"><a href="#None" class="blue white-text">Info</a></li>
+                    </ul>
+                </div>
+                <div class="row">
+                   <div class="col l12" id="Critical">
+                       <table class="highlight">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Vulnerability Name</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in vulnOrder %}
+                                    {% if "Critical" in vulns|get_risk:key %}
+                                        <tr>
+                                            <td>{{ vulns|get_risk:key }}</td>
+                                            <td>{{ vulns|get_name:key }}</td>
+                                            <td>{{ vulns|get_count:key }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                       </table>
+                    </div>
+                    
+                    <div class="col l12" id="High">
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Vulnerability Name</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in vulnOrder %}
+                                    {% if "High" in vulns|get_risk:key %}
+                                        <tr>
+                                            <td>{{ vulns|get_risk:key }}</td>
+                                            <td>{{ vulns|get_name:key }}</td>
+                                            <td>{{ vulns|get_count:key }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                       </table>
+                    </div>
+
+                    <div class="col l12" id="Medium">
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Vulnerability Name</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in vulnOrder %}
+                                    {% if "Medium" in vulns|get_risk:key %}
+                                        <tr>
+                                            <td>{{ vulns|get_risk:key }}</td>
+                                            <td>{{ vulns|get_name:key }}</td>
+                                            <td>{{ vulns|get_count:key }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                       </table>
+                    </div>
+
+                    <div class="col l12" id="Low">
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Vulnerability Name</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in vulnOrder %}
+                                    {% if "Low" in vulns|get_risk:key %}
+                                        <tr>
+                                            <td>{{ vulns|get_risk:key }}</td>
+                                            <td>{{ vulns|get_name:key }}</td>
+                                            <td>{{ vulns|get_count:key }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                       </table>
+                    </div>
+
+                    <div class="col l12" id="None">
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Vulnerability Name</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in vulnOrder %}
+                                    {% if "None" in vulns|get_risk:key %}
+                                        <tr>
+                                            <td>Info</td>
+                                            <td>{{ vulns|get_name:key }}</td>
+                                            <td>{{ vulns|get_count:key }}</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                       </table>
+                        {% for key in vulnOrder %}
+                            {% if "None" in vulns|get_risk:key %}
+                                {{ key }} ::
+                                {{ vulns|get_risk:key }} ::
+                                {{ vulns|get_name:key }} ::
+                                {{ vulns|get_count:key }} ::
+                                <br>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col l12" id="hostCount">
+                <table class="highlight">
+                    <thead>
+                        <tr>
+                            <th>Host IP</th>
+                            <th>Critical</th>
+                            <th>High</th>
+                            <th>Medium</th>
+                            <th>Low</th>
+                            <th>Info</th>
+                            <th>Total Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for value in host_dict %}
+                            <tr>
+                                <td>{{ value.0 }}</td>
+                                <td>{{ host_vuln_detail|get_critical_count:value.0}}</td>
+                                <td>{{ host_vuln_detail|get_high_count:value.0}}</td>
+                                <td>{{ host_vuln_detail|get_medium_count:value.0}}</td>
+                                <td>{{ host_vuln_detail|get_low_count:value.0}}</td>
+                                <td>{{ host_vuln_detail|get_info_count:value.0}}</td>
+                                <td>{{ value.1 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            //$('.collapsible').collapsible();
+            $('.tabs').tabs();
+        });
+    </script>
+{% endblock %}
