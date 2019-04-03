@@ -55,7 +55,7 @@ def parse_XML(request):
     with open('vulns.json', 'w') as file:
         file.write(json.dumps(vulns))
     d2 = json.load(open("vulns.json"))
-    print(d2)
+    # print(d2)
     return render(request, 'parsed_XML.html', {'vulns' : d2})
 
 def parse_all_xml():
@@ -108,7 +108,16 @@ def do_vuln_parsing(vulns, path, filename):
 
 
             if pluginID in vulns['Critical'] or pluginID in vulns['High'] or pluginID in vulns['Medium'] or pluginID in vulns['Low'] or pluginID in vulns['None']:
-                vulns[risk_factor][pluginID]['hosts'].append([ipaddr2, plugin_output])
+                # if ipaddr2 not in vulns[risk_factor][pluginID]['hosts']: 
+                ip_entry_flag = False
+                for ip in vulns[risk_factor][pluginID]['hosts']:
+                    if ip[0] in ipaddr2:
+                        ip_entry_flag = True
+                        break
+
+                if not ip_entry_flag:
+                    vulns[risk_factor][pluginID]['hosts'].append([ipaddr2, plugin_output])
+                # vulns[risk_factor][pluginID]['hosts'] = list(set(vulns[risk_factor][pluginID]['hosts']))
                 if filename not in vulns[risk_factor][pluginID]['file']:
                      vulns[risk_factor][pluginID]['file'].append(filename)
             else:
@@ -157,7 +166,7 @@ def do_parse_os(request):
     for file in files:
         path = os.path.join(settings.MEDIA_ROOT, file)
         osDict = do_os_parsing(osDict, path, file)
-    print(osDict)
+    # print(osDict)
     return render(request, 'parse_os.html', {'osDict' : osDict})
     
 
@@ -212,6 +221,3 @@ def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
         
         # print(ipaddr + " :: " + str(vulnCount))
     return host_dict, host_vuln_detail
-# 192.168.100.62
-# 192.168.100.58
-# 192.168.100.47
