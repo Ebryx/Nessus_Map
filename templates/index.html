@@ -19,28 +19,28 @@
         </div>
 
         <div class="row">
-            <div class="col l6 s6">
+            <div class="col l3 s3">
                 <form action="{% url 'nessus:executive-report' %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" name="executive-report" value="Execute Report" class="btn btn-small red">
                 </form>
             </div>
 
-            <div class="col l6 s6">
+            <div class="col l3 s3">
                 <form action="{% url 'nessus:nessusparse' %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" name="ParseXML" value="Parse Vulnerabilities" class="btn btn-small red">
                 </form>
             </div>
 
-            <div class="col l6 s6">
+            <div class="col l3 s3">
                 <form action="{% url 'nessus:services' %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" name="services" value="Parse Services" class="btn btn-small red">
                 </form>
             </div>
 
-            <div class="col l6 s6">
+            <div class="col l3 s3">
                 <form action="{% url 'nessus:parseos' %}" method="POST">
                     {% csrf_token %}
                     <input type="submit" name="parse-OS" value="Parse Un Supported OS" class="btn btn-small red">
