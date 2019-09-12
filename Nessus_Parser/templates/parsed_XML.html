@@ -26,11 +26,11 @@
         <div class="row"></div>
         <div class="row">
             <ul class="tabs">
-                <li class="tab col l3"><a href="#Critical" class="red accent-4 white-text active">Critical</a></li>
+                <li class="tab col l3"><a href="#Critical" class="red darken-4 white-text active">Critical</a></li>
                 <li class="tab col l3"><a href="#High" class="red white-text">High</a></li>
-                <li class="tab col l2"><a href="#Medium" class="yellow black-text">Medium</a></li>
-                <li class="tab col l2"><a href="#Low" class="green white-text">Low</a></li>
-                <li class="tab col l2"><a href="#None" class="blue white-text">Info</a></li>
+                <li class="tab col l2"><a href="#Medium" class="yellow accent-4 black-text">Medium</a></li>
+                <li class="tab col l2"><a href="#Low" class="green accent-4 white-text">Low</a></li>
+                <li class="tab col l2"><a href="#None" class="blue accent-4 white-text">Info</a></li>
             </ul>
         </div>
         <div class="row">
@@ -43,9 +43,9 @@
                                     {% comment %} <div class="row"> {% endcomment %}
                                         <div class="col l11">
                                             {% if 'Medium' in data.risk%}
-                                                <i class="material-icons yellow-text">error</i>
+                                                <i class="material-icons yellow-text accent-4">error</i>
                                             {% elif 'Critical' in data.risk %}
-                                                <i class="material-icons red-text accent-4">error</i>
+                                                <i class="material-icons red-text darken-4">error</i>
                                             {% elif 'High' in data.risk %}
                                                 <i class="material-icons red-text">error_outline</i>
                                             {% elif 'Low' in data.risk %}

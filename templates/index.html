@@ -2,7 +2,8 @@
 
 {% block content %}
     <div class="container">
-        <div class="row">
+    <br>
+        {% comment %} <div class="row">
             <form method="POST" action="{% url 'nessus:upload' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="file-field input-field">
@@ -16,13 +17,13 @@
                 </div>
                 <input type="submit" class="btn" value="Upload File">
             </form>
-        </div>
+        </div> {% endcomment %}
 
-        <div class="row">
+        {% comment %} <div class="row">
             <div class="col l3 s3">
                 <form action="{% url 'nessus:executive-report' %}" method="POST">
                     {% csrf_token %}
-                    <input type="submit" name="executive-report" value="Execute Report" class="btn btn-small red">
+                    <input type="submit" name="executive-report" value="Executive Report" class="btn btn-small blue">
                 </form>
             </div>
 
@@ -46,7 +47,169 @@
                     <input type="submit" name="parse-OS" value="Parse Un Supported OS" class="btn btn-small red">
                 </form>
             </div>
+        </div> {% endcomment %}
+
+
+        <div class="row">
+
+            <div class="col l6 m6 s6">
+                <div class="row">
+                    <div class="col l12">
+                        <form action="{% url 'nessus:gen-html-report' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="input-field col l12">
+                                    <select name="reporttype">
+                                        <option value="" disabled selected>Report Types</option>
+                                        <option value="1">Executive Report</option>
+                                        <option value="2">Vulnerabilities Report</option>
+                                        <option value="3">Services Report</option>
+                                        <option value="4">Un Supported OS Report</option>
+                                    </select>
+                                    <label>Select Report Type</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col"><input type="submit" name="gen-report" value="Generate HTML Report" class="btn btn-small cyan darken-4"></div>
+                            </div>
+                        </form>
+                   </div>
+                </div>
+                <div class="divider"></div><br><br>
+                <div class="row">
+                    <div class="col l12">
+                            <form action="{% url 'nessus:gen-json' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="input-field col l12">
+                                        <select name="genjson">
+                                            <option value="" disabled selected>Json Types</option>
+                                            <option value="1" class="black-text">All</option>
+                                            <option value="2">Executive Report Json</option>
+                                            <option value="3">Vulnerabilities Json</option>
+                                            <option value="4">Services Json</option>
+                                            <option value="5">Un Supported OS Json</option>
+                                        </select>
+                                        <label>Select Json Type</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col l3">
+                                        <p>
+                                            <label>
+                                                <input type="checkbox" name="download" checked/>
+                                                <span>Download</span>
+                                            </label>
+                                        </p>
+                                    </div>
+                                    <div class="col l9">
+                                        <p>
+                                            <label>
+                                                <input type="checkbox" name="save"/>
+                                                <span>Save to JSON directory</span>
+                                            </label>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col"><input type="submit" name="json-gen" value="Generate Json" class="btn btn-small cyan darken-4"></div>
+                                </div>
+                            </form>
+                        </div>
+                </div>
+            </div>
+
+            <div class="col l6 m6 s6">
+                <form action="{% url 'nessus:load-json' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col l12">
+                            <div class="input-field">
+                                <select name="loadjson">
+                                    <option value="" disabled selected>Json Types</option>
+                                    <option value="1">Executive Report Json</option>
+                                    <option value="2">Vulnerabilities Json</option>
+                                    <option value="3">Services Json</option>
+                                    <option value="4">Un Supported OS Json</option>
+                                </select>
+                                <label>Load from Json</label>
+                            </div>    
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col l12">
+                            <div class="file-field input-field">
+                                <div class="btn cyan darken-4">
+                                    <span>File</span>
+                                    <input type="file" disabled>
+                                </div>
+                                <div class="file-path-wrapper">
+                                    <input class="file-path validate" type="text" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name="load-local" checked/>
+                                    <span>Load from local JSON Directory </span>
+                                </label>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col l4">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name='critical'/>
+                                    <span>Critical</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col l4">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name='high'/>
+                                    <span>High</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col l4">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name='medium'/>
+                                    <span>Medium</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col l4">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name='low'/>
+                                    <span>Low</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col l4">
+                            <p>
+                                <label>
+                                    <input type="checkbox" name='info'/>
+                                    <span>Info</span>
+                                </label>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col"><input type="submit" name="json-load" value="Generate HTML Report from Json" class="btn btn-small cyan darken-4"></div>
+                    </div>
+                </form>
+            </div>
+            
+           
         </div>
+
 
         <div class="row">
             <ul class="collection with-header">
@@ -57,4 +220,16 @@
             </ul>
         </div>
     </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+         $(document).ready(function(){
+            {% if alert %}
+                M.toast({html: ' {{ alert }}! '})
+            {% endif %}
+            $('select').formSelect();
+        });
+    </script>
 {% endblock %}

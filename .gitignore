@@ -1,0 +1,6 @@
+*.nessus
+*.json
+*.xml
+*.pyc
+*.zip
+*.sqlite3
