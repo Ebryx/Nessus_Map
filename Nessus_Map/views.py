@@ -7,3 +7,7 @@ def home_view(request):
     files = filelisting.listing()
     return render(request, 'index.html', {'files' : files})
 
+def home_alert(request, alert):
+    filelisting = FileListing(settings.MEDIA_ROOT, sorting_by='date', sorting_order='desc')
+    files = filelisting.listing()
+    return render(request, 'index.html', {'files' : files, 'alert': alert})

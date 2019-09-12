@@ -1,16 +1,149 @@
 from __future__ import unicode_literals
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.conf import settings
 from filebrowser.base import FileListing
 from django.core.files.storage import FileSystemStorage
 import xml.etree.ElementTree as ET
 from Nessus_Parser.models import Hosts
 from Nessus_Parser.models import Vulnerability
+from Nessus_Map import views as map_views
 import json
 import os
+from io import StringIO
+from zipfile import ZipFile
+from io import BytesIO
 
-def generate_executive_report(request):
-    print("in g-e-r")
+def check_json_exists(request, filename):
+    if os.path.exists(settings.JSON_ROOT + '/' + filename):
+        return True
+    return False
+
+def load_json_dict(filename):
+    with open(settings.JSON_ROOT + '/' + filename) as json_file:
+        loaded_json = json.load(json_file)
+        return loaded_json
+
+def load_json_file(request):
+    if request.method == 'POST':
+        print(request.POST)
+        if 'loadjson' not in request.POST:
+            return map_views.home_alert(request, 'Please select JSON type to load')
+        if 'load-local' not in request.POST:
+            return map_views.home_alert(request, 'Please select Load from local JSON Directory checkbox')
+        select_val = request.POST['loadjson']
+        if select_val == '1':
+            if not check_json_exists(request, 'executive.json'): return map_views.home_alert(request, 'Please create a executive.json file first')
+            ex_json = load_json_dict('executive.json')
+            return render(request, 'generate_executive.html', {'vulns' : ex_json['vulndict'], 'vulnOrder' : ex_json['sorted_d'], "host_dict": sorted(ex_json['host_dict'].items(), key=lambda value: value[1], reverse=True), "host_vuln_detail" : ex_json['host_vuln_detail']})
+        elif select_val == '2':
+            if not check_json_exists(request, 'vulns.json'): return map_views.home_alert(request, 'Please create a vulns.json file first')
+            vulns = load_json_dict('vulns.json')
+            if not 'critical' in request.POST: vulns['Critical'] = ""
+            if not 'high' in request.POST: vulns['High'] = ""
+            if not 'medium' in request.POST: vulns['Medium'] = ""
+            if not 'low' in request.POST: vulns['Low'] = ""
+            if not 'info' in request.POST: vulns['None'] = ""
+            return render(request, 'parsed_XML.html', {'vulns' : vulns})
+        elif select_val == '3':
+            if not check_json_exists(request, 'services.json'): return map_views.home_alert(request, 'Please create a services.json file first')
+            services = load_json_dict('services.json')
+            return render(request, 'port_filter.html', {'services':services})
+        elif select_val == '4':
+            if not check_json_exists(request, 'osDict.json'): return map_views.home_alert(request, 'Please create a osDict.json file first')
+            osDict = load_json_dict('osDict.json')
+            return render(request, 'parse_os.html', {'osDict' : osDict})
+    # return map_views.home_alert(request, 'abc')
+    return redirect('home')
+
+def generate_html_report(request):
+    if request.method == 'POST':
+        select_val = request.POST["reporttype"]
+        print(select_val)
+        if select_val == "1":
+            return generate_executive_report(request)
+        elif select_val == "2":
+            return parse_XML(request)
+        elif select_val == "3":
+            return do_port_filter(request)
+        elif select_val == "4":
+            return do_parse_os(request)
+        else:
+            return redirect('home')
+    return redirect('home')
+
+def download_json_file(json_data, filename):
+    response = HttpResponse(json_data, content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="' + filename + '"'
+    return response
+
+def save_json_file(json_data, filename):
+    if not os.path.exists(settings.JSON_ROOT):
+        os.mkdir(settings.JSON_ROOT)
+    with open(settings.JSON_ROOT + '/' + filename, 'w') as file:
+        file.write(json.dumps(json_data))
+    # os.system("nautilus \"" + settings.JSON_ROOT + "\"")
+    print(settings.JSON_ROOT + "/" + filename + " saved ....")
+
+def generate_json_file(request):
+    if request.method == 'POST':
+        if "genjson" not in request.POST: return redirect('home')
+        select_val = request.POST["genjson"]
+        download = 0; save = 0
+        if "download" in request.POST: download = 1
+        if "save" in request.POST: save = 1
+        if select_val == '1':
+            executive_json = generate_executive_json();
+            vulns = parse_all_xml()
+            services = parse_services()
+            osDict = os_parser()
+            if save == 1:
+                save_json_file(executive_json, "executive.json")
+                save_json_file(vulns, "vulns.json")
+                save_json_file(services, "services.json")
+                save_json_file(osDict, "osDict.json")
+            
+            if download == 1:
+                in_memory = BytesIO()
+                zip = ZipFile(in_memory, "w")
+                    
+                zip.writestr("executive.json", json.dumps(executive_json))
+                zip.writestr("vulns.json", json.dumps(vulns))
+                zip.writestr("services.json", json.dumps(services))
+                zip.writestr("osDict.json", json.dumps(osDict))
+                
+                # fix for Linux zip files read in Windows
+                for file in zip.filelist:
+                    file.create_system = 0    
+                    
+                zip.close()
+
+                response = HttpResponse(content_type="application/zip")
+                response["Content-Disposition"] = "attachment; filename=json.zip"
+                
+                in_memory.seek(0)    
+                response.write(in_memory.read())
+                
+                return response
+        elif select_val == '2':
+            executive_json = generate_executive_json();
+            if save == 1: save_json_file(executive_json, "executive.json")
+            if download == 1: return download_json_file(executive_json, "executive.json")
+        elif select_val == '3':
+            vulns = parse_all_xml()
+            if save == 1: save_json_file(vulns, "vulns.json")
+            if download == 1: return download_json_file(vulns, "vulns.json")
+        elif select_val == '4':
+            services = parse_services()
+            if save == 1: save_json_file(services, "services.json")
+            if download == 1: return download_json_file(services, "services.json")
+        elif select_val == '5':
+            osDict = os_parser()
+            if save == 1: save_json_file(osDict, "osDict.json")
+            if download == 1: return download_json_file(osDict, "osDict.json")
+    return redirect('home')
+
+def generate_executive_json():
     vulns = parse_all_xml()
     vulndict = dict()
     hostdict = dict()
@@ -30,9 +163,19 @@ def generate_executive_report(request):
     for file in files:
         path = os.path.join(settings.MEDIA_ROOT, file)
         host_dict, host_vuln_detail = do_host_vuln_parsing(path, host_dict, host_vuln_detail)
+    
+    ex_json = dict()
+    # ex_json['vulns'] = vulns 
+    ex_json['vulndict'] = vulndict
+    ex_json['sorted_d'] = sorted_d
+    # ex_json['hostdict'] = hostdict
+    ex_json['host_dict'] = host_dict
+    ex_json['host_vuln_detail'] = host_vuln_detail
+    return ex_json
 
-    return render(request, 'generate_executive.html', {'vulns' : vulndict, 'vulnOrder' : sorted_d, "host_dict": sorted(host_dict.items(), key=lambda value: value[1], reverse=True), "host_vuln_detail" : host_vuln_detail})
-
+def generate_executive_report(request):
+    ex_json = generate_executive_json()
+    return render(request, 'generate_executive.html', {'vulns' : ex_json['vulndict'], 'vulnOrder' : ex_json['sorted_d'], "host_dict": sorted(ex_json['host_dict'].items(), key=lambda value: value[1], reverse=True), "host_vuln_detail" : ex_json['host_vuln_detail']})
 
 def handle_uploaded_file(myfile):
     with open(settings.MEDIA_ROOT, 'wb+') as destination:
@@ -44,12 +187,7 @@ def upload_file(request):
 
 def parse_XML(request):
     vulns = parse_all_xml()
-    
-    with open('vulns.json', 'w') as file:
-        file.write(json.dumps(vulns))
-    
-    d2 = json.load(open("vulns.json"))
-    return render(request, 'parsed_XML.html', {'vulns' : d2})
+    return render(request, 'parsed_XML.html', {'vulns' : vulns})
 
 def parse_all_xml():
     vulns = dict()
@@ -159,16 +297,17 @@ def do_parse_services(services, path, filename):
                 services[service] = [ipaddr2]
     return services
 
-
 def do_parse_os(request):
+    osDict = os_parser()
+    return render(request, 'parse_os.html', {'osDict' : osDict})
+    
+def os_parser():
     osDict = dict()
     files = os.listdir(settings.MEDIA_ROOT)
     for file in files:
         path = os.path.join(settings.MEDIA_ROOT, file)
         osDict = do_os_parsing(osDict, path, file)
-    return render(request, 'parse_os.html', {'osDict' : osDict})
-    
-
+    return osDict
 
 def do_os_parsing(osDict, path, filename):
     tree = ET.parse(path)
@@ -194,7 +333,6 @@ def do_os_parsing(osDict, path, filename):
             osDict[ipaddr] = plugin_output
     
     return osDict
-
 
 def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
     tree = ET.parse(path)

@@ -132,3 +132,6 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/XML/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'XML')
+
+JSON_URL = '/JSON/'
+JSON_ROOT = os.path.join(BASE_DIR, 'JSON')
