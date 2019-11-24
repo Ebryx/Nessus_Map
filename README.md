@@ -5,23 +5,26 @@
 
 **Nessus XML Praser**
 
-<img src="https://i.imgur.com/IH6qY1I.png" />
+<img src="https://i.imgur.com/gtw4lVP.png" />
 
 ### Requirements
 - Python3
 - Django
 
 ### Tested on
-- xubuntu 18.04
+- Ubuntu 18.04
 
 ### What it does
 - Vulnerability based parsing
 - Service based parsing
+- Host bases parsing
 - Unsupported OS parsing
-- Generate Executive Summary
+- Generate Executive Summary of scan
+- Export parsed .nessus(s) to JSON file(s)  
+- Import JSON file in Nessus_Map
 
 ### How it works
-<pre>Place all nessus db i-e .nessus file under XML directory and start server.</pre>
+<pre>Create XML directory in Nessus_Map home directory and place all .nessus files under XML directory and start server.</pre>
 
 ### How to Setup
 - Clone this repo `git clone https://github.com/d3vilbug/Nessus_Map.git`
@@ -29,26 +32,34 @@
 - Copy all `.nessus` files in `XML` directory
 - Start server with `python3 manage.py runserver`
 
+
 ### Vulnerability Parsing
 
-<img src="https://i.imgur.com/SUFwFVI.gif" />
+<img src="https://i.imgur.com/etrzGc3.gif" />
 
-<img src="https://i.imgur.com/yoznEVU.png" />
+
+### Host Parsing
+
+<img src="https://i.imgur.com/sgZp1AI.png" />
 
 
 ### Services Parsing
 
-<img src="https://i.imgur.com/8pL1r40.png" />
+<img src="https://i.imgur.com/FZUFRKm.png" />
 
 
-### Executive Summary
+### Executive Reoprt
 
-<img src="https://i.imgur.com/470Siss.gif" />
+<img src="https://i.imgur.com/J4vrkD7.png" />
 
-<img src="https://i.imgur.com/lNEJUlu.png" />
+<img src="https://i.imgur.com/vWeU257.png" />
 
 
-### Unsupported OS
+### Export parsed .nessus(s) to JSON file(s)
 
-<img src="https://i.imgur.com/dujyqiK.png" />
+<img src="https://i.imgur.com/aQaPBZm.gif" />
 
+
+### Import JSON file in Nessus_Map
+
+<img src="https://i.imgur.com/oDBuD8r.gif" />
