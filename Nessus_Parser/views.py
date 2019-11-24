@@ -67,17 +67,16 @@ def generate_html_report(request):
         elif select_val == "3":
             return do_port_filter(request)
         elif select_val == "4":
-<<<<<<< HEAD
+
             return do_parse_host(request)
         elif select_val == "5":
-=======
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
+
             return do_parse_os(request)
         else:
             return redirect('home')
     return redirect('home')
 
-<<<<<<< HEAD
+
 def do_parse_host(request):
     hosts = get_host_parse_json()
     return render(request, 'host_report.html', {'hosts' : hosts})
@@ -128,8 +127,7 @@ def do_parse_hosts(hosts, path, file):
     return hosts
 
 
-=======
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
+
 def download_json_file(json_data, filename):
     response = HttpResponse(json_data, content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename="' + filename + '"'
@@ -155,22 +153,15 @@ def generate_json_file(request):
             vulns = parse_all_xml()
             services = parse_services()
             osDict = os_parser()
-<<<<<<< HEAD
             hosts = get_host_parse_json()
 
-=======
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
             if save == 1:
                 save_json_file(executive_json, "executive.json")
                 save_json_file(vulns, "vulns.json")
                 save_json_file(services, "services.json")
                 save_json_file(osDict, "osDict.json")
-<<<<<<< HEAD
                 save_json_file(hosts, "hosts.json")
 
-=======
-            
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
             if download == 1:
                 in_memory = BytesIO()
                 zip = ZipFile(in_memory, "w")
@@ -179,11 +170,8 @@ def generate_json_file(request):
                 zip.writestr("vulns.json", json.dumps(vulns))
                 zip.writestr("services.json", json.dumps(services))
                 zip.writestr("osDict.json", json.dumps(osDict))
-<<<<<<< HEAD
                 zip.writestr("hosts.json", json.dumps(hosts))
-=======
-                
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
+
                 # fix for Linux zip files read in Windows
                 for file in zip.filelist:
                     file.create_system = 0    
@@ -210,13 +198,10 @@ def generate_json_file(request):
             if save == 1: save_json_file(services, "services.json")
             if download == 1: return download_json_file(services, "services.json")
         elif select_val == '5':
-<<<<<<< HEAD
             hosts = get_host_parse_json()
             if save == 1: save_json_file(hosts, "hosts.json")
             if download == 1: return download_json_file(hosts, "hosts.json")
         elif select_val == '6':
-=======
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
             osDict = os_parser()
             if save == 1: save_json_file(osDict, "osDict.json")
             if download == 1: return download_json_file(osDict, "osDict.json")
