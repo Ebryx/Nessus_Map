@@ -2,6 +2,10 @@ from django import template
 
 register = template.Library()
 
+@register.filter(name='get_key_val')
+def get_key_value(mydict, key):
+    return mydict[key]
+
 @register.filter(name='get_risk')
 def get_risk(mydict, key):
     return mydict[key]["risk"]

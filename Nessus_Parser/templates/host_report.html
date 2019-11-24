@@ -1,0 +1,72 @@
+{% extends 'base_layout.html' %}
+{% load app_filters %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <h5>Host Report</h5>
+        </div>
+        <div class="row">
+            <ul class="collapsible popout">
+                {% for host,details in hosts.items %}
+                    <li>
+                        <div class="collapsible-header">
+                            <div class="col l10">{{ host|upper}}</div>
+                            {% for typee,dataa in details.items %}
+                                {% if 'vulns' in typee %}
+                                    <div class="col l1"><span class="new badge red" data-badge-caption="Vulns">{{ dataa|length }}</span></div>
+                                {% else %}
+                                    <div class="col l1"><span class="new badge blue" data-badge-caption="Ports">{{ dataa|length }}</span></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="collapsible-body">
+                            {% for typee,dataa in details.items %}
+                                {% if 'vulns' in typee %}
+                                    <div class="row">
+                                        {% comment %} <hr> {% endcomment %}
+                                        {% comment %} <h6> Vulnerabilities</h6> {% endcomment %}
+                                        <ul class="collapsible">
+                                            {% for vuln in  dataa %}
+                                                <li>
+                                                    <div class="collapsible-header">
+                                                        {% if 'None' in vuln|get_key_val:'Risk' %}
+                                                            <div class="col l1">Info</div>
+                                                        {% else %}
+                                                            <div class="col l1">{{ vuln|get_key_val:'Risk'}}</div>
+                                                        {% endif %}
+                                                        <div class="col l1">{{ vuln|get_key_val:'Port'}}/{{ vuln|get_key_val:'Protocol'}}</div>
+                                                        <div class="col l10">{{ vuln|get_key_val:'Title'}}</div>
+                                                    </div>
+                                                    <div class="collapsible-body"><pre>{{ vuln|get_key_val:'Output'}}</pre></div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>                                          
+                                    </div>
+                                {% else %}
+                                    <div class="row">
+                                        {% comment %} <h6> Services</h6> {% endcomment %}
+                                        {% for port in  dataa%}
+                                            <div class="chip">{{ port }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(document).ready(function(){
+            $('.collapsible').collapsible();
+        });
+    </script>
+{% endblock %}

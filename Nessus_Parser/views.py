@@ -67,10 +67,62 @@ def generate_html_report(request):
         elif select_val == "3":
             return do_port_filter(request)
         elif select_val == "4":
+            return do_parse_host(request)
+        elif select_val == "5":
             return do_parse_os(request)
         else:
             return redirect('home')
     return redirect('home')
+
+def do_parse_host(request):
+    hosts = get_host_parse_json()
+    return render(request, 'host_report.html', {'hosts' : hosts})
+
+def get_host_parse_json():
+    hosts = dict()
+    files = os.listdir(settings.MEDIA_ROOT)
+    for file in files:
+        path = os.path.join(settings.MEDIA_ROOT, file)
+        hosts = do_parse_hosts(hosts, path, file)
+    return hosts
+
+def do_parse_hosts(hosts, path, file):
+    tree = ET.parse(path)
+    for host in tree.findall('Report/ReportHost'):
+        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        if ipaddr not in hosts:
+            hosts[ipaddr]               = dict()
+            hosts[ipaddr]['services']   = list()
+            hosts[ipaddr]['vulns']      = list()
+
+        for item in host.findall('ReportItem'):
+            vuln        = dict()
+            service     = item.get('svc_name')
+            port        = item.get('port')
+            protocol    = item.get('protocol')
+            ipaddr2     = "{0} ({1}/{2})".format(ipaddr, port, protocol)
+            if ipaddr2 not in hosts[ipaddr]['services']:
+                hosts[ipaddr]['services'].append(ipaddr2)
+            # -------- vuln parsing ------
+            risk_factor     = item.find('risk_factor').text
+            pluginID        = item.get('pluginID')
+            pluginName      = item.get('pluginName')
+            port            = item.get('port')
+            protocol        = item.get('protocol')
+            plugin_output   = ""
+
+            if item.find('plugin_output') is not None:
+                plugin_output = item.find('plugin_output').text
+                        
+            vuln['Risk'] = risk_factor
+            vuln['ID'] = pluginID
+            vuln['Title'] = pluginName
+            vuln['Port'] = port
+            vuln['Protocol'] = protocol
+            vuln['Output'] = plugin_output
+            hosts[ipaddr]['vulns'].append(vuln);
+    return hosts
+
 
 def download_json_file(json_data, filename):
     response = HttpResponse(json_data, content_type='application/json')
@@ -97,12 +149,15 @@ def generate_json_file(request):
             vulns = parse_all_xml()
             services = parse_services()
             osDict = os_parser()
+            hosts = get_host_parse_json()
+
             if save == 1:
                 save_json_file(executive_json, "executive.json")
                 save_json_file(vulns, "vulns.json")
                 save_json_file(services, "services.json")
                 save_json_file(osDict, "osDict.json")
-            
+                save_json_file(hosts, "hosts.json")
+
             if download == 1:
                 in_memory = BytesIO()
                 zip = ZipFile(in_memory, "w")
@@ -111,7 +166,7 @@ def generate_json_file(request):
                 zip.writestr("vulns.json", json.dumps(vulns))
                 zip.writestr("services.json", json.dumps(services))
                 zip.writestr("osDict.json", json.dumps(osDict))
-                
+                zip.writestr("hosts.json", json.dumps(hosts))
                 # fix for Linux zip files read in Windows
                 for file in zip.filelist:
                     file.create_system = 0    
@@ -138,6 +193,10 @@ def generate_json_file(request):
             if save == 1: save_json_file(services, "services.json")
             if download == 1: return download_json_file(services, "services.json")
         elif select_val == '5':
+            hosts = get_host_parse_json()
+            if save == 1: save_json_file(hosts, "hosts.json")
+            if download == 1: return download_json_file(hosts, "hosts.json")
+        elif select_val == '6':
             osDict = os_parser()
             if save == 1: save_json_file(osDict, "osDict.json")
             if download == 1: return download_json_file(osDict, "osDict.json")
@@ -201,7 +260,15 @@ def parse_all_xml():
     for file in files:
         path = os.path.join(settings.MEDIA_ROOT, file)
         vulns = do_vuln_parsing(vulns, path, file)
-    
+    # file = open("nessus.csv", "w")
+    # for sev in vulns:
+    #     for vuln in vulns[sev]:
+    #         ips = ""
+    #         for host in vulns[sev][vuln]['hosts']:
+    #             ips += host[0] + " "
+    #         print(sev+","+vulns[sev][vuln]['name']+","+ips)
+    #         file.write(sev+","+vulns[sev][vuln]['name']+","+ips+"\n")
+    # file.close()
     return vulns
 
 def do_vuln_parsing(vulns, path, filename):
@@ -372,3 +439,6 @@ def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
         host_dict[ipaddr] = int(host_vuln_detail[ipaddr]["Critical"]) + int(host_vuln_detail[ipaddr]["High"]) + int(host_vuln_detail[ipaddr]["Medium"]) + int(host_vuln_detail[ipaddr]["Low"]) + int(host_vuln_detail[ipaddr]["Info"])
         
     return host_dict, host_vuln_detail
+
+
+
