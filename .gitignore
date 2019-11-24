@@ -1,9 +1,6 @@
 *.nessus
 *.json
-<<<<<<< HEAD
 *.csv
-=======
->>>>>>> 85ae870f8c00d7861a2dfa91d85b3294e969c538
 *.xml
 *.pyc
 *.zip
