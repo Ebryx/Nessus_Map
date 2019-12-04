@@ -1,4 +1,4 @@
-Django==1.11.16
+Django==1.11.23
 django-filebrowser==3.11.1
 django-grappelli==2.12.2
 Pillow==5.4.1
