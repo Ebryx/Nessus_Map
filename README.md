@@ -27,7 +27,7 @@
 <pre>Create XML directory in Nessus_Map home directory and place all .nessus files under XML directory and start server.</pre>
 
 ### How to Setup
-- Clone this repo `git clone https://github.com/d3vilbug/Nessus_Map.git`
+- Clone this repo `https://github.com/Ebryx/Nessus_Map.git`
 - Change directory `cd Nessus_Map`
 - Copy all `.nessus` files in `XML` directory
 - Start server with `python3 manage.py runserver`
