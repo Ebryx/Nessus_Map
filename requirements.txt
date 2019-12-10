@@ -2,5 +2,4 @@ Django==1.11.23
 django-filebrowser==3.11.1
 django-grappelli==2.12.2
 Pillow==6.2.0
-pkg-resources==0.0.0
 pytz==2018.9
