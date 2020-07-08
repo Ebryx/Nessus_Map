@@ -29,7 +29,7 @@
 ### How to Setup
 - Clone this repo `https://github.com/Ebryx/Nessus_Map.git`
 - Change directory `cd Nessus_Map`
-- Create a director named `XML`
+- Create a directory named `XML`
 - Copy all `.nessus` files in `XML` directory
 - Start server with `python3 manage.py runserver`
 
