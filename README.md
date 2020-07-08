@@ -29,8 +29,23 @@
 ### How to Setup
 - Clone this repo `https://github.com/Ebryx/Nessus_Map.git`
 - Change directory `cd Nessus_Map`
+- Create a director named `XML`
 - Copy all `.nessus` files in `XML` directory
 - Start server with `python3 manage.py runserver`
+
+### Setting up with Python's Virtualenv
+```bash
+git clone https://github.com/Ebryx/Nessus_Map
+cd Nessus_Map
+mkdir env
+mkdir XML
+cd env
+python3 -m venv . 
+source bin/activate
+cd ..
+pip3 install -r requirements.txt
+python manage.py runserver
+```
 
 
 ### Vulnerability Parsing
