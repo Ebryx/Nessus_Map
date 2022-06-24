@@ -1,4 +1,5 @@
-from django.conf.urls import url, include
+from django.urls import include
+from django.urls import re_path as url
 from . import views
 
 app_name = 'nessus'
