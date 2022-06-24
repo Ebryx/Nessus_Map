@@ -131,3 +131,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'XML')
 
 JSON_URL = '/JSON/'
 JSON_ROOT = os.path.join(BASE_DIR, 'JSON')
+
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'
