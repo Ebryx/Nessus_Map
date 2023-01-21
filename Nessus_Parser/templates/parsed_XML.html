@@ -18,6 +18,44 @@
             display: block;
             white-space: pre-line;
         }
+        .button {
+            display: inline-block;
+            border-radius: 50px;
+            background-color: #04AA6D;
+            border: none;
+            color: #FFF;
+            text-align: center;
+            padding: 10px 15px;
+            width: 200px;
+            transition: all 0.5s;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+            .button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+            .button span:after {
+            content: '\00bb';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -20px;
+            transition: 0.5s;
+        }
+
+            .button:hover span {
+            padding-right: 25px;
+        }
+
+            .button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
     </style>
 {% endblock %}
 
@@ -71,13 +109,17 @@
                                             {% endif %}
                                         </div>
                                         <div class="col l6 bold">Plugin ID</div>
-                                        <div class="col l6"> {{ data.pluginID }} </div>                                        
+                                        <div class="col l6"> {{ data.pluginID }} </div>
                                         <div class="col l6">Files</div>
                                         <div class="col l6">
                                             {% for file in data.file %}
                                                 <div class="chip">{{ file }}</div>
                                             {% endfor %}
                                         </div>
+                                        <div class="col l6"></div>
+                                        <div class="col l6"><a
+                                                href="https://www.infosecmatter.com/nessus-plugin-library/?id={{ data.pluginID }}#:~:text=.-,public%20exploits,-Target%20Network%20Port"
+                                                target="_blank" class="button" style="vertical-align:middle"><span>Check Public Exploits</span></a></div>
                                     </div>
                                     <div class="row">
                                         <div class="col l12" style="font-weight: bold;">Synopsis</div>
