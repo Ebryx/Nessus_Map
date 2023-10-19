@@ -1,5 +1,5 @@
-Django==4.1.10
-django-filebrowser==4.0.1
-django-grappelli==3.0.3
-Pillow==10.0.1
-pytz==2022.1
+Django
+django-filebrowser
+django-grappelli
+Pillow
+pytz
