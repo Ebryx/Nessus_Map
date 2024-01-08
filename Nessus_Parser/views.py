@@ -345,6 +345,8 @@ def do_vuln_parsing(vulns, path, filename):
             synopsis = ""
             see_also = ""
             solution = ""
+            cvss3_base_score = ""
+            cvss3_vector = ""
 
             if item.find("plugin_output") is not None:
                 plugin_output = item.find("plugin_output").text
@@ -360,6 +362,12 @@ def do_vuln_parsing(vulns, path, filename):
 
             if item.find("solution") is not None:
                 solution = item.find("solution").text
+
+            if item.find("cvss3_base_score") is not None:
+                cvss3_base_score = item.find("cvss3_base_score").text
+
+            if item.find("cvss3_vector") is not None:
+                cvss3_vector = item.find("cvss3_vector").text
 
             ipaddr2 = "{0} ({1}/{2})".format(ipaddr, port, protocol)
 
@@ -393,6 +401,8 @@ def do_vuln_parsing(vulns, path, filename):
                     "hosts": [[ipaddr2, plugin_output]],
                     "pluginID": pluginID,
                     "description": description,
+                    "cvss3_base_score": cvss3_base_score,
+                    "cvss3_vector": cvss3_vector,
                 }
 
     return vulns
