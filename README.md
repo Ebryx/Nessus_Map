@@ -40,8 +40,7 @@
 - Clone this repo `https://github.com/Ebryx/Nessus_Map.git`
 - Change directory `cd Nessus_Map`
 - Export `.nessus` report from Nessus Dashboard
-- Copy/Move the `.nessus` report in `XML` directory
-  Repeat this step for multiple scan reports
+- Copy/Move the `.nessus` report in `XML` directory (repeat this step for multiple scan reports)
 - Start server with `python3 manage.py runserver`
 
 ### Setting up with Python Virtualenv
