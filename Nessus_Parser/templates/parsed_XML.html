@@ -145,24 +145,47 @@
                                             </pre>
                                         </div>
                                     </div>
+
                                     <!-- CVSS 3 score/string -->
-                                    <div class="row">
-                                        <div class="col l12" style="font-weight: bold;">CVSS Details</div>
-                                        <div class="col l12">
-                                            <pre>
-                                                CVSS 3.0 Score: {{data.cvss3_base_score}}
-                                                CVSS 3.0 Vector: <a href="https://www.first.org/cvss/calculator/3.0#{{data.cvss3_vector}}" target="_blank">{{data.cvss3_vector}}</a>
-                                            </pre>
+                                    {% if data.cvss3_vector or data.cvss3_base_score %}
+                                        <div class="row">
+                                            <div class="col l12" style="font-weight: bold;">CVSS Details</div>
+                                            <div class="col l12">
+                                                <pre>
+                                                    CVSS 3.0 Score: {{data.cvss3_base_score}}
+                                                    CVSS 3.0 Vector: <a href="https://www.first.org/cvss/calculator/3.0#{{data.cvss3_vector}}" target="_blank">{{data.cvss3_vector}}</a>
+                                                </pre>
+                                            </div>
+                                        </div>  
+                                    {% endif %}
+
+                                    <!-- List of CVEs -->
+                                    {% if data.cves %}
+                                        <div class="row">
+                                            <div class="col l12" style="font-weight: bold;">CVE(s)</div>
+                                            <div class="col l12">
+                                                <!-- <pre> -->
+                                                    {% for cves in data.cves %}
+                                                        <a href="https://www.cvedetails.com/cve/{{ cves }}" target="_blank">{{ cves }}</a><br>
+                                                    {% endfor %}
+                                                <!-- </pre> -->
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col l12" style="font-weight: bold;">References</div>
-                                        <div class="col l12">
-                                            <pre>
-                                                {{data.see_also}}
-                                            </pre>
+                                    {% endif %}
+
+                                    <!-- References -->
+                                    {% if data.see_also %}
+                                        <div class="row">
+                                            <div class="col l12" style="font-weight: bold;">References</div>
+                                            <div class="col l12">
+                                                <pre>
+                                                    {{data.see_also}}
+                                                </pre>
+                                            </div>
                                         </div>
-                                    </div>
+                                    {% endif %}
+
+
                                     <div class="row">
                                         <ul class="collapsible">
                                             {% for host in data.hosts %}
