@@ -117,9 +117,13 @@
                                             {% endfor %}
                                         </div>
                                         <div class="col l6"></div>
-                                        <div class="col l6"><a
+                                        <div class="col l6">
+                                            <a
                                                 href="https://www.infosecmatter.com/nessus-plugin-library/?id={{ data.pluginID }}#:~:text=.-,public%20exploits,-Target%20Network%20Port"
-                                                target="_blank" class="button" style="vertical-align:middle"><span>Check Public Exploits</span></a></div>
+                                                target="_blank" class="button" style="vertical-align:middle">
+                                                <span>Check Public Exploits</span>
+                                            </a>
+                                        </div>
                                     </div>
                                     <div class="row">
                                         <div class="col l12" style="font-weight: bold;">Synopsis</div>
@@ -165,6 +169,21 @@
                                             <div class="col l12" style="font-weight: bold;">CVE(s)</div>
                                             <div class="col l12">
                                                 <pre>{% for cves in data.cves %}<a href="https://www.cvedetails.com/cve/{{ cves }}" target="_blank">{{ cves }}</a><br>{% endfor %}</pre>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+
+                                    
+                                    <!-- Exploitation -->
+                                    {% if data.exploit_available or data.exploit_code_maturity or data.exploitability_ease %}
+                                        <div class="row">
+                                            <div class="col l12" style="font-weight: bold;">Exploitation</div>
+                                            <div class="col l12">
+                                                <pre>
+                                                    Exploit Availability: {{ data.exploit_available }}
+                                                    Exploit Code Maturity: {{ data.exploit_code_maturity }}
+                                                    Exploitability Ease: {{ data.exploitability_ease }}
+                                                </pre>
                                             </div>
                                         </div>
                                     {% endif %}

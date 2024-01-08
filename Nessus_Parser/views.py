@@ -348,6 +348,9 @@ def do_vuln_parsing(vulns, path, filename):
             cvss3_base_score = ""
             cvss3_vector = ""
             cves = []
+            exploit_available = ""
+            exploit_code_maturity = ""
+            exploitability_ease = ""
 
             if item.find("plugin_output") is not None:
                 plugin_output = item.find("plugin_output").text
@@ -373,6 +376,15 @@ def do_vuln_parsing(vulns, path, filename):
             if item.find("cve") is not None:
                 for cve_id in item.findall("cve"):
                     cves.append(cve_id.text)
+
+            if item.find("exploit_available") is not None:
+                exploit_available = item.find("exploit_available").text
+
+            if item.find("exploit_code_maturity") is not None:
+                exploit_code_maturity = item.find("exploit_code_maturity").text
+
+            if item.find("exploitability_ease") is not None:
+                exploitability_ease = item.find("exploitability_ease").text
 
             ipaddr2 = "{0} ({1}/{2})".format(ipaddr, port, protocol)
 
@@ -409,6 +421,9 @@ def do_vuln_parsing(vulns, path, filename):
                     "cvss3_base_score": cvss3_base_score,
                     "cvss3_vector": cvss3_vector,
                     "cves": cves,
+                    "exploit_available": exploit_available,
+                    "exploit_code_maturity": exploit_code_maturity,
+                    "exploitability_ease": exploitability_ease,
                 }
 
     return vulns
