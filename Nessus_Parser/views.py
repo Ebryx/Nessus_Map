@@ -81,7 +81,7 @@ def load_json_file(request):
 def generate_html_report(request):
     if request.method == "POST":
         select_val = request.POST["reporttype"]
-        print(select_val)
+        # print(select_val)
         if select_val == "1":
             return generate_executive_report(request)
         elif select_val == "2":
