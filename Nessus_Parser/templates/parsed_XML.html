@@ -164,11 +164,7 @@
                                         <div class="row">
                                             <div class="col l12" style="font-weight: bold;">CVE(s)</div>
                                             <div class="col l12">
-                                                <!-- <pre> -->
-                                                    {% for cves in data.cves %}
-                                                        <a href="https://www.cvedetails.com/cve/{{ cves }}" target="_blank">{{ cves }}</a><br>
-                                                    {% endfor %}
-                                                <!-- </pre> -->
+                                                <pre>{% for cves in data.cves %}<a href="https://www.cvedetails.com/cve/{{ cves }}" target="_blank">{{ cves }}</a><br>{% endfor %}</pre>
                                             </div>
                                         </div>
                                     {% endif %}
