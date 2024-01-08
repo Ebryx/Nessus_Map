@@ -25,13 +25,13 @@
 - Host bases parsing
 - Unsupported OS parsing
 - Generate Executive Summary of scan
-- Export parsed .nessus(s) to JSON file(s)
+- Export parsed `.nessus` files to JSON file
 - Import JSON file in Nessus_Map
 - Combines multiple Nessus Scan results
 
 ### How it works
 
-- Takes in .nessus from Nessus Scan results
+- Takes in `.nessus` from Nessus Scan results
 - Parses the XML data
 - Generates easy-to-read output for all vulnerabilities
 
