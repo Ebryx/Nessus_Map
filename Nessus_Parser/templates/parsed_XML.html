@@ -92,10 +92,31 @@
                                                 <i class="material-icons blue-text">info</i>
                                             {% endif %}
                                             {{ data.name }} 
+
                                         </div>
                                         <div class="col l1">
                                             <span class="new badge red" data-badge-caption="IP">{{ data.hosts|length }}</span>
                                         </div>
+
+                                        <div id="vulnerabilities" class="col l1"><label class="" ><input type="checkbox" /><span></span></label></div>
+
+                                        <script>
+
+                                            // if($('#vulnerabilities').is(':checked'))
+                                            //     $('#vulnerabilities').prop("checked", true);
+                                            
+                                            // var checkBox = document.getElementById("vulnerabilities");
+                                            // if (checkBox.checked == true){
+                                            //     console.log(123);
+                                            //     text.style.display = "block";
+                                            // } else {
+                                            //     console.log(456);
+                                            // }
+
+
+
+                                        </script>
+
                                     {% comment %} </div> {% endcomment %}
                                 </div>
                                 <div class="collapsible-body">
@@ -110,6 +131,13 @@
                                         </div>
                                         <div class="col l6 bold">Plugin ID</div>
                                         <div class="col l6"> {{ data.pluginID }} </div>
+
+                                        <!-- <div class="col l6">Hide</div>
+                                        <label class="col l6">
+                                            <input class="col l6" type="checkbox" />
+                                            <span> </span>
+                                          </label> -->
+
                                         <div class="col l6">Files</div>
                                         <div class="col l6">
                                             {% for file in data.file %}
@@ -123,6 +151,7 @@
                                                 target="_blank" class="button" style="vertical-align:middle">
                                                 <span>Check Public Exploits</span>
                                             </a>
+                                            
                                         </div>
                                     </div>
                                     <div class="row">
