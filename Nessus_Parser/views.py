@@ -15,6 +15,12 @@ from zipfile import ZipFile
 from io import BytesIO
 
 
+def iter_nessus_files():
+    for filename in os.listdir(settings.MEDIA_ROOT):
+        if filename.lower().endswith(".nessus"):
+            yield filename, os.path.join(settings.MEDIA_ROOT, filename)
+
+
 def check_json_exists(request, filename):
     if os.path.exists(settings.JSON_ROOT + "/" + filename):
         return True
@@ -104,9 +110,7 @@ def do_parse_host(request):
 
 def get_host_parse_json():
     hosts = dict()
-    files = os.listdir(settings.MEDIA_ROOT)
-    for file in files:
-        path = os.path.join(settings.MEDIA_ROOT, file)
+    for file, path in iter_nessus_files():
         hosts = do_parse_hosts(hosts, path, file)
     return hosts
 
@@ -260,10 +264,8 @@ def generate_executive_json():
     sorted_d = sorted(vulndict, key=lambda x: vulndict[x]["count"], reverse=True)
     host_dict = dict()
     host_vuln_detail = dict()
-    files = os.listdir(settings.MEDIA_ROOT)
 
-    for file in files:
-        path = os.path.join(settings.MEDIA_ROOT, file)
+    for file, path in iter_nessus_files():
         host_dict, host_vuln_detail = do_host_vuln_parsing(path, host_dict, host_vuln_detail)
 
     ex_json = dict()
@@ -312,10 +314,8 @@ def parse_all_xml():
     vulns["Medium"] = dict()
     vulns["Low"] = dict()
     vulns["None"] = dict()
-    files = os.listdir(settings.MEDIA_ROOT)
 
-    for file in files:
-        path = os.path.join(settings.MEDIA_ROOT, file)
+    for file, path in iter_nessus_files():
         vulns = do_vuln_parsing(vulns, path, file)
     # file = open("nessus.csv", "w")
     # for sev in vulns:
@@ -436,9 +436,7 @@ def do_port_filter(request):
 
 def parse_services():
     services = dict()
-    files = os.listdir(settings.MEDIA_ROOT)
-    for file in files:
-        path = os.path.join(settings.MEDIA_ROOT, file)
+    for file, path in iter_nessus_files():
         services = do_parse_services(services, path, file)
     return services
 
@@ -467,9 +465,7 @@ def do_parse_os(request):
 
 def os_parser():
     osDict = dict()
-    files = os.listdir(settings.MEDIA_ROOT)
-    for file in files:
-        path = os.path.join(settings.MEDIA_ROOT, file)
+    for file, path in iter_nessus_files():
         osDict = do_os_parsing(osDict, path, file)
     return osDict
 
