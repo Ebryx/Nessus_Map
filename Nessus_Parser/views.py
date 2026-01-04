@@ -15,10 +15,47 @@ from zipfile import ZipFile
 from io import BytesIO
 
 
+RISK_FACTORS = {
+    "Critical": "Critical",
+    "High": "High",
+    "Medium": "Medium",
+    "Low": "Low",
+    "None": "None",
+    "Info": "None",
+    "Informational": "None",
+}
+
+SEVERITY_MAP = {
+    "0": "None",
+    "1": "Low",
+    "2": "Medium",
+    "3": "High",
+    "4": "Critical",
+}
+
+
 def iter_nessus_files():
     for filename in os.listdir(settings.MEDIA_ROOT):
         if filename.lower().endswith(".nessus"):
             yield filename, os.path.join(settings.MEDIA_ROOT, filename)
+
+
+def get_item_severity(item):
+    severity = item.get("severity")
+    if severity in SEVERITY_MAP:
+        return SEVERITY_MAP[severity]
+
+    risk_factor = item.findtext("risk_factor", default="").strip()
+    return RISK_FACTORS.get(risk_factor, "None")
+
+
+def get_item_risk_factor(item):
+    risk_factor = item.findtext("risk_factor", default="").strip()
+    if risk_factor:
+        return RISK_FACTORS.get(risk_factor, risk_factor)
+
+    severity = item.get("severity")
+    return SEVERITY_MAP.get(severity, "None")
 
 
 def check_json_exists(request, filename):
@@ -130,19 +167,20 @@ def do_parse_hosts(hosts, path, file):
             port = item.get("port")
             protocol = item.get("protocol")
             ipaddr2 = "{0} ({1}/{2})".format(ipaddr, port, protocol)
-            if ipaddr2 not in hosts[ipaddr]["services"]:
-                hosts[ipaddr]["services"].append(ipaddr2)
-            # -------- vuln parsing ------
-            risk_factor = item.find("risk_factor").text
-            pluginID = item.get("pluginID")
-            pluginName = item.get("pluginName")
-            port = item.get("port")
-            protocol = item.get("protocol")
-            plugin_output = ""
+        if ipaddr2 not in hosts[ipaddr]["services"]:
+            hosts[ipaddr]["services"].append(ipaddr2)
+        # -------- vuln parsing ------
+        severity = get_item_severity(item)
+        risk_factor = get_item_risk_factor(item)
+        pluginID = item.get("pluginID")
+        pluginName = item.get("pluginName")
+        port = item.get("port")
+        protocol = item.get("protocol")
+        plugin_output = ""
 
-            if item.find("plugin_output") is not None:
-                plugin_output = item.find("plugin_output").text
-
+        if item.find("plugin_output") is not None:
+            plugin_output = item.find("plugin_output").text
+            vuln["Severity"] = severity
             vuln["Risk"] = risk_factor
             vuln["ID"] = pluginID
             vuln["Title"] = pluginName
@@ -334,7 +372,8 @@ def do_vuln_parsing(vulns, path, filename):
     for host in tree.findall("Report/ReportHost"):
         ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
         for item in host.findall("ReportItem"):
-            risk_factor = item.find("risk_factor").text
+            severity = get_item_severity(item)
+            risk_factor = get_item_risk_factor(item)
             pluginID = item.get("pluginID")
             pluginName = item.get("pluginName")
             port = item.get("port")
@@ -397,19 +436,21 @@ def do_vuln_parsing(vulns, path, filename):
             ):
                 ip_entry_flag = False
 
-                for ip in vulns[risk_factor][pluginID]["hosts"]:
+                for ip in vulns[severity][pluginID]["hosts"]:
                     if ip[0] in ipaddr2:
                         ip_entry_flag = True
                         break
 
                 if not ip_entry_flag:
-                    vulns[risk_factor][pluginID]["hosts"].append([ipaddr2, plugin_output])
+                    vulns[severity][pluginID]["hosts"].append([ipaddr2, plugin_output])
 
-                if filename not in vulns[risk_factor][pluginID]["file"]:
-                    vulns[risk_factor][pluginID]["file"].append(filename)
+                if filename not in vulns[severity][pluginID]["file"]:
+                    vulns[severity][pluginID]["file"].append(filename)
             else:
-                vulns[risk_factor][pluginID] = {
-                    "risk": risk_factor,
+                vulns[severity][pluginID] = {
+                    "risk": severity,
+                    "severity": severity,
+                    "risk_factor": risk_factor,
                     "name": pluginName,
                     "synopsis": synopsis,
                     "see_also": see_also,
@@ -519,25 +560,25 @@ def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
             host_vuln_detail[ipaddr]["Info"] = 0
 
         for item in host.findall("ReportItem"):
-            risk_factor = item.find("risk_factor").text
+            severity = get_item_severity(item)
 
-            if "Critical" in risk_factor:
+            if "Critical" in severity:
                 host_vuln_detail[ipaddr]["Critical"] = int(host_vuln_detail[ipaddr]["Critical"]) + 1
 
-            elif "High" in risk_factor:
+            elif "High" in severity:
                 host_vuln_detail[ipaddr]["High"] = host_vuln_detail[ipaddr]["High"] + 1
 
-            elif "Medium" in risk_factor:
+            elif "Medium" in severity:
                 host_vuln_detail[ipaddr]["Medium"] = host_vuln_detail[ipaddr]["Medium"] + 1
 
-            elif "Low" in risk_factor:
+            elif "Low" in severity:
                 host_vuln_detail[ipaddr]["Low"] = host_vuln_detail[ipaddr]["Low"] + 1
 
-            elif "None" in risk_factor:
+            elif "None" in severity:
                 host_vuln_detail[ipaddr]["Info"] = host_vuln_detail[ipaddr]["Info"] + 1
 
             else:
-                print(risk_factor)
+                print(severity)
 
         host_dict[ipaddr] = (
             int(host_vuln_detail[ipaddr]["Critical"])

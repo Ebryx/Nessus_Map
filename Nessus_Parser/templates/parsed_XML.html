@@ -121,12 +121,28 @@
                                 </div>
                                 <div class="collapsible-body">
                                     <div class="row">
+                                        <div class="col l6">Severity</div>
+                                        <div class="col l6">
+                                            {% if 'None' in data.risk %}
+                                                Info
+                                            {% else %}
+                                                {{ data.risk }}
+                                            {% endif %}
+                                        </div>
                                         <div class="col l6">Risk</div>
                                         <div class="col l6">
-                                            {% if 'None' in data.risk %} 
-                                                Info 
+                                            {% if data.risk_factor %}
+                                                {% if 'None' in data.risk_factor %}
+                                                    Info
+                                                {% else %}
+                                                    {{ data.risk_factor }}
+                                                {% endif %}
                                             {% else %}
-                                                {{ data.risk }}  
+                                                {% if 'None' in data.risk %}
+                                                    Info
+                                                {% else %}
+                                                    {{ data.risk }}
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                         <div class="col l6 bold">Plugin ID</div>

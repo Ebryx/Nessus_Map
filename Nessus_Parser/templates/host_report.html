@@ -31,13 +31,24 @@
                                             {% for vuln in  dataa %}
                                                 <li>
                                                     <div class="collapsible-header">
-                                                        {% if 'None' in vuln|get_key_val:'Risk' %}
-                                                            <div class="col l1">Info</div>
-                                                        {% else %}
-                                                            <div class="col l1">{{ vuln|get_key_val:'Risk'}}</div>
-                                                        {% endif %}
+                                                        <div class="col l2">
+                                                            <div>
+                                                                {% if 'None' in vuln|get_key_val:'Severity' %}
+                                                                    Severity: Info
+                                                                {% else %}
+                                                                    Severity: {{ vuln|get_key_val:'Severity' }}
+                                                                {% endif %}
+                                                            </div>
+                                                            <div>
+                                                                {% if 'None' in vuln|get_key_val:'Risk' %}
+                                                                    Risk: Info
+                                                                {% else %}
+                                                                    Risk: {{ vuln|get_key_val:'Risk' }}
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
                                                         <div class="col l1">{{ vuln|get_key_val:'Port'}}/{{ vuln|get_key_val:'Protocol'}}</div>
-                                                        <div class="col l10">{{ vuln|get_key_val:'Title'}}</div>
+                                                        <div class="col l9">{{ vuln|get_key_val:'Title'}}</div>
                                                     </div>
                                                     <div class="collapsible-body"><pre>{{ vuln|get_key_val:'Output'}}</pre></div>
                                                 </li>
