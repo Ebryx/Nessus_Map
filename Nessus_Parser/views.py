@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
 from django.conf import settings
 from filebrowser.base import FileListing
 from django.core.files.storage import FileSystemStorage
@@ -33,6 +34,8 @@ SEVERITY_MAP = {
     "4": "Critical",
 }
 
+CHECKED_FINDINGS_FILENAME = "checked_findings.json"
+
 
 def iter_nessus_files():
     for filename in os.listdir(settings.MEDIA_ROOT):
@@ -56,6 +59,101 @@ def get_item_risk_factor(item):
 
     severity = item.get("severity")
     return SEVERITY_MAP.get(severity, "None")
+
+
+def get_checked_findings_path():
+    return os.path.join(settings.JSON_ROOT, CHECKED_FINDINGS_FILENAME)
+
+
+def load_checked_findings(current_files=None):
+    if not os.path.exists(settings.JSON_ROOT):
+        os.mkdir(settings.JSON_ROOT)
+    path = get_checked_findings_path()
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path) as checked_file:
+            data = json.load(checked_file)
+    except ValueError:
+        return {}
+    checked_by_file = {}
+    if isinstance(data, dict) and "by_file" in data:
+        by_file = data.get("by_file", {})
+        for filename, ids in by_file.items():
+            if isinstance(ids, list):
+                checked_by_file[filename] = set(str(item) for item in ids)
+    else:
+        legacy_ids = []
+        if isinstance(data, dict):
+            legacy_ids = data.get("checked_ids", [])
+        elif isinstance(data, list):
+            legacy_ids = data
+        if legacy_ids:
+            legacy_set = set(str(item) for item in legacy_ids)
+            if current_files:
+                for filename in current_files:
+                    checked_by_file[filename] = set(legacy_set)
+            else:
+                checked_by_file["__legacy__"] = set(legacy_set)
+    return checked_by_file
+
+
+def save_checked_findings(checked_by_file):
+    if not os.path.exists(settings.JSON_ROOT):
+        os.mkdir(settings.JSON_ROOT)
+    path = get_checked_findings_path()
+    temp_path = path + ".tmp"
+    payload = {"by_file": {}}
+    for filename, ids in checked_by_file.items():
+        if not ids or filename == "__legacy__":
+            continue
+        payload["by_file"][filename] = sorted(set(str(item) for item in ids))
+    with open(temp_path, "w") as checked_file:
+        json.dump(payload, checked_file)
+    if hasattr(os, "replace"):
+        os.replace(temp_path, path)
+    else:
+        os.rename(temp_path, path)
+
+
+def is_plugin_checked_for_files(plugin_id, files, checked_by_file):
+    if not files:
+        return False
+    for filename in files:
+        if plugin_id not in checked_by_file.get(filename, set()):
+            return False
+    return True
+
+
+def build_checked_items(vulns, checked_by_file):
+    items = []
+    for severity in vulns:
+        group = vulns[severity]
+        if not hasattr(group, "items"):
+            continue
+        for plugin_id, data in group.items():
+            if is_plugin_checked_for_files(plugin_id, data.get("file", []), checked_by_file):
+                items.append(
+                    {
+                        "plugin_id": plugin_id,
+                        "name": data.get("name", ""),
+                        "severity": data.get("severity", data.get("risk", "")),
+                        "risk_factor": data.get("risk_factor", ""),
+                    }
+                )
+    return items
+
+
+def get_checked_ids_for_view(vulns, checked_by_file):
+    checked_ids = []
+    for severity in vulns:
+        group = vulns[severity]
+        if not hasattr(group, "items"):
+            continue
+        for plugin_id, data in group.items():
+            if is_plugin_checked_for_files(plugin_id, data.get("file", []), checked_by_file):
+                checked_ids.append(plugin_id)
+    return checked_ids
 
 
 def check_json_exists(request, filename):
@@ -106,7 +204,15 @@ def load_json_file(request):
                 vulns["Low"] = ""
             if not "info" in request.POST:
                 vulns["None"] = ""
-            return render(request, "parsed_XML.html", {"vulns": vulns})
+            current_files = [filename for filename, _ in iter_nessus_files()]
+            checked_by_file = load_checked_findings(current_files)
+            checked_ids = get_checked_ids_for_view(vulns, checked_by_file)
+            checked_items = build_checked_items(vulns, checked_by_file)
+            return render(
+                request,
+                "parsed_XML.html",
+                {"vulns": vulns, "checked_ids": checked_ids, "checked_items": checked_items},
+            )
         elif select_val == "3":
             if not check_json_exists(request, "services.json"):
                 return map_views.home_alert(request, "Please create a services.json file first")
@@ -167,19 +273,20 @@ def do_parse_hosts(hosts, path, file):
             port = item.get("port")
             protocol = item.get("protocol")
             ipaddr2 = "{0} ({1}/{2})".format(ipaddr, port, protocol)
-        if ipaddr2 not in hosts[ipaddr]["services"]:
-            hosts[ipaddr]["services"].append(ipaddr2)
-        # -------- vuln parsing ------
-        severity = get_item_severity(item)
-        risk_factor = get_item_risk_factor(item)
-        pluginID = item.get("pluginID")
-        pluginName = item.get("pluginName")
-        port = item.get("port")
-        protocol = item.get("protocol")
-        plugin_output = ""
+            if ipaddr2 not in hosts[ipaddr]["services"]:
+                hosts[ipaddr]["services"].append(ipaddr2)
+            # -------- vuln parsing ------
+            severity = get_item_severity(item)
+            risk_factor = get_item_risk_factor(item)
+            pluginID = item.get("pluginID")
+            pluginName = item.get("pluginName")
+            port = item.get("port")
+            protocol = item.get("protocol")
+            plugin_output = ""
 
-        if item.find("plugin_output") is not None:
-            plugin_output = item.find("plugin_output").text
+            if item.find("plugin_output") is not None:
+                plugin_output = item.find("plugin_output").text
+
             vuln["Severity"] = severity
             vuln["Risk"] = risk_factor
             vuln["ID"] = pluginID
@@ -342,7 +449,44 @@ def upload_file(request):
 
 def parse_XML(request):
     vulns = parse_all_xml()
-    return render(request, "parsed_XML.html", {"vulns": vulns})
+    current_files = [filename for filename, _ in iter_nessus_files()]
+    checked_by_file = load_checked_findings(current_files)
+    checked_ids = get_checked_ids_for_view(vulns, checked_by_file)
+    checked_items = build_checked_items(vulns, checked_by_file)
+    return render(
+        request,
+        "parsed_XML.html",
+        {"vulns": vulns, "checked_ids": checked_ids, "checked_items": checked_items},
+    )
+
+
+def parse_bool(value):
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+@require_POST
+def toggle_finding(request):
+    plugin_id = request.POST.get("plugin_id")
+    if not plugin_id:
+        return JsonResponse({"ok": False, "error": "plugin_id is required"}, status=400)
+    checked = parse_bool(request.POST.get("checked"))
+    files_param = request.POST.get("files", "")
+    files = [filename for filename in files_param.split("|") if filename]
+    checked_by_file = load_checked_findings(files)
+    for filename in files:
+        ids = checked_by_file.get(filename, set())
+        if not isinstance(ids, set):
+            ids = set(str(item) for item in ids)
+        if checked:
+            ids.add(str(plugin_id))
+        else:
+            ids.discard(str(plugin_id))
+        if ids:
+            checked_by_file[filename] = ids
+        else:
+            checked_by_file.pop(filename, None)
+    save_checked_findings(checked_by_file)
+    return JsonResponse({"ok": True, "checked": checked})
 
 
 def parse_all_xml():

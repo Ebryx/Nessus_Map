@@ -52,9 +52,22 @@
             padding-right: 25px;
         }
 
-            .button:hover span:after {
+        .button:hover span:after {
             opacity: 1;
             right: 0;
+        }
+        .finding-item.is-checked {
+            display: none;
+        }
+        .checked-findings-panel {
+            padding: 12px 16px;
+        }
+        .checked-findings-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        #checked-findings-list .chip {
+            margin-right: 6px;
         }
     </style>
 {% endblock %}
@@ -71,12 +84,29 @@
                 <li class="tab col l2"><a href="#None" class="blue accent-4 white-text">Info</a></li>
             </ul>
         </div>
+        <div class="row" id="checked-findings-bar" {% if not checked_items %}style="display: none;"{% endif %}>
+            <div class="col l12">
+                <div class="card-panel grey lighten-4 checked-findings-panel">
+                    <div class="checked-findings-title">
+                        Checked Findings <span id="checked-count">({{ checked_items|length }})</span>
+                    </div>
+                    <div id="checked-findings-list">
+                        {% for item in checked_items %}
+                            <div class="chip checked-chip" data-plugin-id="{{ item.plugin_id }}">
+                                {{ item.name }} ({{ item.plugin_id }})
+                                <i class="close material-icons">close</i>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             {% for key, value in vulns.items %}
                 <div class="col l12" id="{{ key }}">
                     <ul class="collapsible popout">
                         {% for vuln, data in value.items %}
-                            <li>
+                            <li class="finding-item {% if vuln in checked_ids %}is-checked{% endif %}" data-plugin-id="{{ vuln }}" data-plugin-name="{{ data.name|escape }}" data-severity="{{ data.risk }}" data-risk-factor="{{ data.risk_factor|default:'' }}" data-files="{{ data.file|join:'|' }}">
                                 <div class="collapsible-header">
                                     {% comment %} <div class="row"> {% endcomment %}
                                         <div class="col l11">
@@ -98,24 +128,12 @@
                                             <span class="new badge red" data-badge-caption="IP">{{ data.hosts|length }}</span>
                                         </div>
 
-                                        <div id="vulnerabilities" class="col l1"><label class="" ><input type="checkbox" /><span></span></label></div>
-
-                                        <script>
-
-                                            // if($('#vulnerabilities').is(':checked'))
-                                            //     $('#vulnerabilities').prop("checked", true);
-                                            
-                                            // var checkBox = document.getElementById("vulnerabilities");
-                                            // if (checkBox.checked == true){
-                                            //     console.log(123);
-                                            //     text.style.display = "block";
-                                            // } else {
-                                            //     console.log(456);
-                                            // }
-
-
-
-                                        </script>
+                                        <div class="col l1">
+                                            <label>
+                                                <input type="checkbox" class="finding-toggle" data-plugin-id="{{ vuln }}" {% if vuln in checked_ids %}checked{% endif %} />
+                                                <span></span>
+                                            </label>
+                                        </div>
 
                                     {% comment %} </div> {% endcomment %}
                                 </div>
@@ -276,9 +294,112 @@
 
 {% block scripts %}
     <script>
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                var cookies = document.cookie.split(";");
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         $(document).ready(function(){
             $('.collapsible').collapsible();
             $('.tabs').tabs();
+
+            var csrfToken = getCookie("csrftoken");
+
+            function updateBarVisibility() {
+                var count = $("#checked-findings-list .checked-chip").length;
+                $("#checked-count").text("(" + count + ")");
+                if (count > 0) {
+                    $("#checked-findings-bar").show();
+                } else {
+                    $("#checked-findings-bar").hide();
+                }
+            }
+
+            function addCheckedChip(pluginId) {
+                if ($(".checked-chip[data-plugin-id='" + pluginId + "']").length) {
+                    return;
+                }
+                var $item = $(".finding-item[data-plugin-id='" + pluginId + "']");
+                var name = $item.data("plugin-name") || pluginId;
+                var $chip = $("<div>")
+                    .addClass("chip checked-chip")
+                    .attr("data-plugin-id", pluginId);
+                $chip.append($("<span>").text(name + " (" + pluginId + ") "));
+                $chip.append($("<i>").addClass("close material-icons").text("close"));
+                $("#checked-findings-list").append($chip);
+            }
+
+            function removeCheckedChip(pluginId) {
+                $(".checked-chip[data-plugin-id='" + pluginId + "']").remove();
+            }
+
+            function setFindingChecked(pluginId, checked) {
+                var $item = $(".finding-item[data-plugin-id='" + pluginId + "']");
+                $item.toggleClass("is-checked", checked);
+                $item.find(".finding-toggle").prop("checked", checked);
+                if (checked) {
+                    addCheckedChip(pluginId);
+                } else {
+                    removeCheckedChip(pluginId);
+                }
+                updateBarVisibility();
+            }
+
+            function persistFinding(pluginId, checked) {
+                var $item = $(".finding-item[data-plugin-id='" + pluginId + "']");
+                var filesValue = $item.data("files");
+                var files = [];
+                if (filesValue) {
+                    files = filesValue.toString().split("|");
+                }
+                return $.ajax({
+                    url: "{% url 'nessus:toggle-finding' %}",
+                    method: "POST",
+                    data: {
+                        plugin_id: pluginId,
+                        checked: checked ? "true" : "false",
+                        files: files.join("|")
+                    },
+                    headers: { "X-CSRFToken": csrfToken }
+                });
+            }
+
+            function toggleFinding(pluginId, checked) {
+                var $item = $(".finding-item[data-plugin-id='" + pluginId + "']");
+                var $checkbox = $item.find(".finding-toggle");
+                $checkbox.prop("disabled", true);
+                persistFinding(pluginId, checked).done(function() {
+                    setFindingChecked(pluginId, checked);
+                }).fail(function() {
+                    setFindingChecked(pluginId, !checked);
+                }).always(function() {
+                    $checkbox.prop("disabled", false);
+                });
+            }
+
+            $(document).on("change", ".finding-toggle", function() {
+                var pluginId = $(this).data("plugin-id");
+                var checked = $(this).is(":checked");
+                toggleFinding(pluginId, checked);
+            });
+
+            $(document).on("click", ".checked-chip .close", function(event) {
+                event.preventDefault();
+                var pluginId = $(this).closest(".checked-chip").data("plugin-id");
+                toggleFinding(pluginId, false);
+            });
+
+            updateBarVisibility();
         });
     </script>
 {% endblock %}

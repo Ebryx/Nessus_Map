@@ -6,6 +6,7 @@ app_name = 'nessus'
 
 urlpatterns = [
     url(r'^vulnerabilities/$', views.parse_XML, name='nessusparse'),
+    url(r'^toggle-finding/$', views.toggle_finding, name='toggle-finding'),
     url(r'upload/$', views.upload_file, name='upload'),
     url(r'services/$', views.do_port_filter, name='services'),
     url(r'parseOS/$', views.do_parse_os, name='parseos'),
