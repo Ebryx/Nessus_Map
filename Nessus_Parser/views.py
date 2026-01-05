@@ -61,6 +61,20 @@ def get_item_risk_factor(item):
     return SEVERITY_MAP.get(severity, "None")
 
 
+def get_host_identifier(host):
+    host_ip = host.findtext("HostProperties/tag/[@name='host-ip']", default="").strip()
+    if host_ip:
+        return host_ip
+    host_name = (host.get("name") or "").strip()
+    if host_name:
+        return host_name
+    for tag_name in ("host-fqdn", "hostname", "fqdn", "host-rdns", "netbios-name"):
+        value = host.findtext("HostProperties/tag/[@name='%s']" % tag_name, default="").strip()
+        if value:
+            return value
+    return None
+
+
 def get_checked_findings_path():
     return os.path.join(settings.JSON_ROOT, CHECKED_FINDINGS_FILENAME)
 
@@ -261,7 +275,9 @@ def get_host_parse_json():
 def do_parse_hosts(hosts, path, file):
     tree = ET.parse(path)
     for host in tree.findall("Report/ReportHost"):
-        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        ipaddr = get_host_identifier(host)
+        if not ipaddr:
+            continue
         if ipaddr not in hosts:
             hosts[ipaddr] = dict()
             hosts[ipaddr]["services"] = list()
@@ -514,7 +530,9 @@ def parse_all_xml():
 def do_vuln_parsing(vulns, path, filename):
     tree = ET.parse(path)
     for host in tree.findall("Report/ReportHost"):
-        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        ipaddr = get_host_identifier(host)
+        if not ipaddr:
+            continue
         for item in host.findall("ReportItem"):
             severity = get_item_severity(item)
             risk_factor = get_item_risk_factor(item)
@@ -629,7 +647,9 @@ def parse_services():
 def do_parse_services(services, path, filename):
     tree = ET.parse(path)
     for host in tree.findall("Report/ReportHost"):
-        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        ipaddr = get_host_identifier(host)
+        if not ipaddr:
+            continue
         for item in host.findall("ReportItem"):
             service = item.get("svc_name")
             port = item.get("port")
@@ -659,7 +679,9 @@ def do_os_parsing(osDict, path, filename):
     tree = ET.parse(path)
 
     for host in tree.findall("Report/ReportHost"):
-        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        ipaddr = get_host_identifier(host)
+        if not ipaddr:
+            continue
 
         for item in host.findall("ReportItem"):
             pluginID = item.get("pluginID")
@@ -693,7 +715,9 @@ def do_host_vuln_parsing(path, host_dict, host_vuln_detail):
     tree = ET.parse(path)
 
     for host in tree.findall("Report/ReportHost"):
-        ipaddr = host.find("HostProperties/tag/[@name='host-ip']").text
+        ipaddr = get_host_identifier(host)
+        if not ipaddr:
+            continue
 
         if ipaddr not in host_vuln_detail:
             host_vuln_detail[ipaddr] = dict()
